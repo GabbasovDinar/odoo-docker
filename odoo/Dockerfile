@@ -1,6 +1,7 @@
 #------------------------#
 #     Odoo Community     #
 #------------------------#
+
 ARG ODOO_TAG
 FROM odoo:${ODOO_TAG}
 
@@ -11,28 +12,26 @@ USER root
 ARG ODOO_TAG
 ARG ROOT_PATH
 ARG LOG_PATH
-ARG ENTERPRISE_USER
-ARG ENTERPRISE_ACCESS_TOKEN
 ARG ENTERPRISE_ADDONS
-ARG GITHUB_USER
+ARG ENTERPRISE_REPO_URL
 ARG GITHUB_ACCESS_TOKEN
 ARG THIRD_PARTY_ADDONS
 ARG ODOO_RC
 ARG USE_REDIS
 ARG USE_S3
+ARG USE_ODOO_ENTERPRISE
 ARG USE_SENTRY
 
 ENV ODOO_TAG=${ODOO_TAG} \
     LOG_PATH=${LOG_PATH} \
-    ENTERPRISE_USER=${ENTERPRISE_USER} \
-    ENTERPRISE_ACCESS_TOKEN=${ENTERPRISE_ACCESS_TOKEN} \
     ENTERPRISE_ADDONS=${ENTERPRISE_ADDONS} \
-    GITHUB_USER=${GITHUB_USER} \
     GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} \
     THIRD_PARTY_ADDONS=${THIRD_PARTY_ADDONS} \
     ODOO_RC=${ODOO_RC} \
     USE_REDIS=${USE_REDIS} \
     USE_S3=${USE_S3} \
+    USE_ODOO_ENTERPRISE=${USE_ODOO_ENTERPRISE} \
+    ENTERPRISE_REPO_URL=${ENTERPRISE_REPO_URL} \
     USE_SENTRY=${USE_SENTRY}
 
 #---------------------#
@@ -62,27 +61,37 @@ RUN apt-get update && apt-get install -y \
     openssh-client \
     patch \
     xauth \
+    wget \
+    && wget https://github.com/mikefarah/yq/releases/download/v4.33.3/yq_linux_amd64 -O /usr/bin/yq && \
+    chmod +x /usr/bin/yq && \
     # Remove apt lists
-    && rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*
+
+#------------------------#
+#   Configure Git Auth   #
+#------------------------#
+# Add GitHub token to git config
+RUN git config --global url."https://x-access-token:${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
 
 #---------------------#
 #   PIP Dependecies   #
 #---------------------#
-# Copy & Install PIP requirements
 COPY --chown=odoo:odoo ./odoo/requirements.txt /tmp/requirements.txt
+RUN python3 -m pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
-RUN python3 -m pip install -r /tmp/requirements.txt && \
-    rm /tmp/requirements.txt
+#------------------------#
+#  Clone Repositories    #
+#------------------------#
+RUN mkdir -p ${THIRD_PARTY_ADDONS} && mkdir -p ${ENTERPRISE_ADDONS}
 
-#--------------------------------------------#
-#    Odoo Enterprise + Third Party Addons    #
-#--------------------------------------------#
-# Create third-party-addons directory and clone them
-RUN mkdir -p ${THIRD_PARTY_ADDONS}
-COPY --chown=odoo:odoo ./odoo/clone-addons.sh /
-COPY --chown=odoo:odoo ./odoo/third-party-addons.txt /
-# RUN /clone-addons.sh && chown odoo:odoo -R ${THIRD_PARTY_ADDONS}
-RUN /clone-addons.sh
+COPY --chown=odoo:odoo ./odoo/clone_enterprise.sh /
+RUN chmod +x /clone_enterprise.sh
+RUN /clone_enterprise.sh
+
+COPY --chown=odoo:odoo ./odoo/clone_third_party_addons.sh /
+RUN chmod +x /clone_third_party_addons.sh
+COPY --chown=odoo:odoo ./odoo/third-party-addons.yml /
+RUN /clone_third_party_addons.sh
 
 #-----------------------#
 #       Odoo Conf       #

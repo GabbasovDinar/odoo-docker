@@ -7,16 +7,15 @@ services:
         - ODOO_TAG
         - ODOO_RC
         - ROOT_PATH
-        - ENTERPRISE_USER
-        - ENTERPRISE_ACCESS_TOKEN
         - ENTERPRISE_ADDONS
-        - GITHUB_USER
+        - ENTERPRISE_REPO_URL
         - GITHUB_ACCESS_TOKEN
         - THIRD_PARTY_ADDONS
         - LOG_PATH
         - USE_REDIS
         - USE_S3
         - USE_SENTRY
+        - USE_ODOO_ENTERPRISE
     tty: true
     volumes:
       - odoo-data:${DATA_DIR}

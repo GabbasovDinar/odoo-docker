@@ -1,0 +1,21 @@
+# This file is designed to be used with Git Aggregator
+# Check https://github.com/acsone/git-aggregator for more details and documentation
+
+# NEW KEY CHANGES: 
+# - addons:  is used to copy the specified addons to ${THIRD_PARTY_ADDONS}, 
+#            if not specified then all repository contents are copied see: 
+#            odoocker/odoo/clone-addons.sh:#L31-L104
+# - exclude: If it is present, all modules other than those specified in 
+#            this key will be copied to ${THIRD_PARTY_ADDONS}. If the 
+#            addons key is also specified, it will take precedence over exclude.
+
+./web:
+    remotes:
+        oca: https://github.com/oca/web.git
+    merges:
+        -
+            remote: oca
+            ref: "16.0"
+            depth: 1
+    target: oca
+    addons: web_notify

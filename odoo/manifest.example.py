@@ -5,7 +5,7 @@
         Multi-Line Module Description
         Goes Here
     ''',
-    'version': '1.0.0', # (X.Y.Z.W) X: Odoo Version (not present), Y: Major Upgrade, Z: Bugfix, W: Minor Upgrade
+    'version': '16.0.1.0.0', # (X.Y.Z.W) X: Odoo Version, Y: Major Upgrade, Z: Bugfix, W: Minor Upgrade
     'category': 'Uncategorized', # Possible values: [https://github.com/odoo/odoo/blob/16.0/odoo/addons/base/data/ir_module_category_data.xml]
     'license': 'LGPL-3',
     'sequence': 100, # Order in which the module will be displayed
